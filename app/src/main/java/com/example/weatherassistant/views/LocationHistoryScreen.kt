@@ -13,7 +13,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,30 +29,18 @@ import androidx.compose.ui.unit.sp
 import com.example.weatherassistant.R
 import com.example.weatherassistant.viewmodel.WeatherDataViewModel
 
-// Danh sách hình nền
 private val backgroundList = listOf(
-    R.drawable.bg_clear_day,
-    R.drawable.bg_clear_night,
-    R.drawable.bg_cloudy,
-    R.drawable.bg_rain,
-    R.drawable.bg_snow,
-    R.drawable.bg_sunny,
-    R.drawable.bg_partly_cloudy_day,
-    R.drawable.bg_partly_cloudy_night,
-    R.drawable.bg_error,
-    R.drawable.bg_fog,
-    R.drawable.bg_loading_screen
+    R.drawable.bg_clear_day, R.drawable.bg_clear_night, R.drawable.bg_cloudy,
+    R.drawable.bg_rain, R.drawable.bg_snow, R.drawable.bg_sunny,
+    R.drawable.bg_partly_cloudy_day, R.drawable.bg_partly_cloudy_night
 )
 
-// Màu nền của các card
 private val cardColorList = listOf(
-    Color(0xFFB2EBF2),
-    Color(0xFFC8E6C9),
-    Color(0xFFFFF9C4),
-    Color(0xFFF8BBD0),
-    Color(0xFFD1C4E9),
-    Color(0xFFFFE0B2)
+    Color(0xFFB2EBF2), Color(0xFFC8E6C9), Color(0xFFFFF9C4),
+    Color(0xFFF8BBD0), Color(0xFFD1C4E9), Color(0xFFFFE0B2)
 )
+
+private enum class OptionsViewState { GRID, HISTORY, NEARBY }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,7 +49,7 @@ fun LocationHistoryScreen(
     onNavigateBack: () -> Unit,
     onHistoryItemClick: (String) -> Unit
 ) {
-    var showHistoryList by remember { mutableStateOf(false) }
+    var currentView by remember { mutableStateOf(OptionsViewState.GRID) }
     val randomBackground = remember { backgroundList.random() }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -77,47 +66,48 @@ fun LocationHistoryScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            if (showHistoryList) "Lịch sử tìm kiếm" else "Trợ lý chức năng",
-                            color = Color.White
+                            when (currentView) {
+                                OptionsViewState.GRID -> "Tùy chọn"
+                                OptionsViewState.HISTORY -> "Lịch sử tìm kiếm"
+                                OptionsViewState.NEARBY -> "Địa điểm gần đây"
+                            }
                         )
                     },
                     navigationIcon = {
                         IconButton(onClick = {
-                            if (showHistoryList) showHistoryList = false else onNavigateBack()
+                            if (currentView != OptionsViewState.GRID) {
+                                currentView = OptionsViewState.GRID
+                            } else {
+                                onNavigateBack()
+                            }
                         }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Quay lại",
-                                tint = Color.White
-                            )
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Quay lại")
                         }
                     },
                     actions = {
-                        if (showHistoryList) {
+                        if (currentView == OptionsViewState.HISTORY) {
                             IconButton(onClick = { viewModel.clearSearchHistory() }) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Xóa lịch sử",
-                                    tint = Color.White
-                                )
+                                Icon(Icons.Default.Delete, "Xóa lịch sử")
                             }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Black.copy(alpha = 0.3f)
+                        containerColor = Color.Black.copy(alpha = 0.3f),
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White,
+                        actionIconContentColor = Color.White
                     )
                 )
             }
         ) { paddingValues ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
-                if (showHistoryList) {
-                    HistoryList(viewModel = viewModel, onHistoryItemClick = onHistoryItemClick)
-                } else {
-                    OptionGrid(onShowHistoryClick = { showHistoryList = true })
+            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+                when (currentView) {
+                    OptionsViewState.GRID -> OptionGrid(
+                        onShowHistoryClick = { currentView = OptionsViewState.HISTORY },
+                        onShowNearbyClick = { currentView = OptionsViewState.NEARBY }
+                    )
+                    OptionsViewState.HISTORY -> HistoryList(viewModel, onHistoryItemClick)
+                    OptionsViewState.NEARBY -> NearbyPlacesList(viewModel, onLocationClick = onHistoryItemClick)
                 }
             }
         }
@@ -125,7 +115,7 @@ fun LocationHistoryScreen(
 }
 
 @Composable
-private fun OptionGrid(onShowHistoryClick: () -> Unit) {
+private fun OptionGrid(onShowHistoryClick: () -> Unit, onShowNearbyClick: () -> Unit) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier.fillMaxSize(),
@@ -133,20 +123,8 @@ private fun OptionGrid(onShowHistoryClick: () -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item {
-            OptionCard(
-                title = "Lịch sử",
-                icon = Icons.Default.History,
-                onClick = onShowHistoryClick
-            )
-        }
-        item {
-            OptionCard(
-                title = "Tính năng khác",
-                icon = Icons.Default.Star,
-                onClick = { /* TODO: future feature */ }
-            )
-        }
+        item { OptionCard("Lịch sử", Icons.Default.History, onShowHistoryClick) }
+        item { OptionCard("Gần đây", Icons.Default.Place, onShowNearbyClick) }
     }
 }
 
@@ -154,28 +132,18 @@ private fun OptionGrid(onShowHistoryClick: () -> Unit) {
 private fun OptionCard(title: String, icon: ImageVector, onClick: () -> Unit) {
     val randomColor = remember { cardColorList.random() }
     Card(
-        modifier = Modifier
-            .aspectRatio(1f)
-            .clickable(onClick = onClick),
+        modifier = Modifier.aspectRatio(1f).clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = randomColor.copy(alpha = 0.8f)
-        ),
-        shape = RoundedCornerShape(16.dp)
+        colors = CardDefaults.cardColors(containerColor = randomColor.copy(alpha = 0.8f))
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                modifier = Modifier.size(48.dp),
-                tint = Color.Black.copy(alpha = 0.8f)
-            )
+            Icon(icon, title, modifier = Modifier.size(48.dp), tint = Color.Black.copy(alpha = 0.8f))
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = title, fontSize = 18.sp, color = Color.Black.copy(alpha = 0.8f))
+            Text(title, fontSize = 18.sp, color = Color.Black.copy(alpha = 0.8f))
         }
     }
 }
@@ -183,80 +151,79 @@ private fun OptionCard(title: String, icon: ImageVector, onClick: () -> Unit) {
 @Composable
 private fun HistoryList(viewModel: WeatherDataViewModel, onHistoryItemClick: (String) -> Unit) {
     val history by viewModel.searchHistory.collectAsState()
-
     if (history.isEmpty()) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                "Chưa có lịch sử tìm kiếm.",
-                color = Color.White.copy(alpha = 0.9f),
-                fontSize = 18.sp,
-                textAlign = TextAlign.Center
-            )
+        Box(Modifier.fillMaxSize().padding(16.dp), Alignment.Center) {
+            Text("Chưa có lịch sử tìm kiếm.", color = Color.White, fontSize = 18.sp)
         }
     } else {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .padding(top = 16.dp)
-                .background(
-                    color = Color.Black.copy(alpha = 0.3f),
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(16.dp)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp).padding(top = 8.dp)
+                .background(Color.Black.copy(alpha = 0.3f), RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+            contentPadding = PaddingValues(16.dp)
         ) {
-            Text(
-                "Lịch sử gần đây",
-                style = MaterialTheme.typography.headlineSmall.copy(color = Color.White)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            LazyColumn {
-                items(history.toList().reversed()) { location ->
-                    HistoryItemCard(location = location) {
-                        onHistoryItemClick(location)
-                    }
-                }
+            items(history.toList().reversed()) { location ->
+                Text(location, fontSize = 18.sp, color = Color.White,
+                    modifier = Modifier.fillMaxWidth().clickable { onHistoryItemClick(location) }.padding(vertical = 12.dp)
+                )
+                HorizontalDivider(color = Color.Gray)
             }
         }
     }
 }
 
+// 👇 HÀM NÀY ĐÃ ĐƯỢC THIẾT KẾ LẠI CHO ĐẸP HƠN
 @Composable
-fun HistoryItemCard(location: String, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp)
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.85f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(16.dp)
+fun NearbyPlacesList(viewModel: WeatherDataViewModel, onLocationClick: (String) -> Unit) {
+    val nearbyPlaces by viewModel.nearbyPlaces.collectAsState()
+
+    if (nearbyPlaces.isEmpty()) {
+        Box(Modifier.fillMaxSize().padding(16.dp), Alignment.Center) {
+            CircularProgressIndicator(color = Color.White)
+        }
+    } else {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .padding(top = 8.dp)
+                .background(
+                    color = Color.Black.copy(alpha = 0.4f),
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                ),
+            contentPadding = PaddingValues(vertical = 8.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.History,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(28.dp)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = location,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = Color.Black,
-                    fontSize = 18.sp
-                )
-            )
+            items(nearbyPlaces) { place ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onLocationClick(place.title) }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Thêm icon vị trí cho mỗi dòng
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = "Địa điểm",
+                        tint = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    // Tên địa điểm
+                    Text(
+                        text = place.title,
+                        fontSize = 16.sp,
+                        color = Color.White
+                    )
+                }
+                // Thêm đường kẻ ngăn cách giữa các mục
+                if (nearbyPlaces.last() != place) {
+                    HorizontalDivider(
+                        color = Color.Gray.copy(alpha = 0.5f),
+                        thickness = 0.5.dp,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+            }
         }
     }
 }

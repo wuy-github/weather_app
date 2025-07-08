@@ -15,6 +15,8 @@ import com.example.weatherassistant.data.repository.UserPreferencesRepository
 import com.example.weatherassistant.ui.theme.WeatherAssistantTheme
 import com.example.weatherassistant.viewmodel.WeatherDataViewModel
 import com.example.weatherassistant.viewmodel.WeatherDataViewModelFactory
+import com.example.weatherassistant.data.repository.WikipediaRepository
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,7 +26,8 @@ class MainActivity : ComponentActivity() {
             WeatherAssistantTheme {
                 val context = LocalContext.current
                 val userPrefsRepository = UserPreferencesRepository(context)
-                val viewModelFactory = WeatherDataViewModelFactory(userPrefsRepository)
+                val wikipediaRepository = WikipediaRepository()
+                val viewModelFactory = WeatherDataViewModelFactory(userPrefsRepository, wikipediaRepository)
                 val viewModel: WeatherDataViewModel = viewModel(factory = viewModelFactory)
 
                 // Chỉ xử lý việc xin quyền ở đây

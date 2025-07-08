@@ -3,6 +3,8 @@ package com.example.weatherassistant.data.model
 
 //@JsonClass(generateAdapter = true)
 data class WeatherApiResponse (
+    val latitude: Double,
+    val longitude: Double,
     val timezone: String,
     val address: String,
     val days: List<WeatherDay>

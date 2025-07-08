@@ -11,9 +11,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weatherassistant.Model.WeatherData
 import com.example.weatherassistant.UIState.WeatherUIState
+import com.example.weatherassistant.data.model.GeoSearchItem
 import com.example.weatherassistant.data.model.WeatherApiResponse
 import com.example.weatherassistant.data.model.WeatherDay
 import com.example.weatherassistant.data.remote.RetrofitInstance
+import com.example.weatherassistant.data.repository.WikipediaRepository
 import com.example.weatherassistant.data.repository.UserPreferencesRepository
 import com.example.weatherassistant.views.components.WhatTheDay
 import com.google.android.gms.location.LocationCallback
@@ -27,7 +29,9 @@ import java.time.LocalDate
 
 // 👇 Cấu trúc class đúng bắt đầu từ đây
 class WeatherDataViewModel(
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val wikipediaRepository: WikipediaRepository
+
 ) : ViewModel() {
 
     private val _notification = MutableStateFlow<String?>(null)
@@ -45,6 +49,9 @@ class WeatherDataViewModel(
     val searchHistory = userPreferencesRepository.searchHistoryFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
+    private val _nearbyPlaces = MutableStateFlow<List<GeoSearchItem>>(emptyList())
+    val nearbyPlaces: StateFlow<List<GeoSearchItem>> = _nearbyPlaces
+
     fun fetchWeatherFor(location: String) {
         viewModelScope.launch {
             if (_uiState.value !is WeatherUIState.Success) _uiState.value = WeatherUIState.Loading
@@ -60,7 +67,9 @@ class WeatherDataViewModel(
                 _uiState.value = WeatherUIState.Success
                 Log.d("fetchData", "✅ Successfully fetched data for $location")
 
-                if (location.isNotBlank()) {
+                fetchNearbyPlaces(response.latitude, response.longitude)
+
+                if (location.isNotBlank() && !location.contains(",")) {
                     userPreferencesRepository.addLocationToHistory(location)
                     Log.d("DataStore", "✅ Saved '$location' to history.")
                 }
@@ -68,6 +77,18 @@ class WeatherDataViewModel(
             } catch (e: Exception) {
                 showNotification("❌ Địa điểm bạn nhập không hợp lệ ❌")
                 Log.e("fetchData", "❌ Failed to fetch data: ${e.message}", e)
+            }
+        }
+    }
+
+    fun fetchNearbyPlaces(lat: Double, lon: Double) {
+        viewModelScope.launch {
+            val places = wikipediaRepository.getNearbyPlaces(lat, lon)
+            if (places != null) {
+                _nearbyPlaces.value = places
+                Log.d("WikipediaAPI", "✅ Found ${places.size} nearby places.")
+            } else {
+                Log.e("WikipediaAPI", "❌ Failed to fetch nearby places.")
             }
         }
     }
@@ -84,7 +105,14 @@ class WeatherDataViewModel(
         val locationCallBack = object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult) {
                 super.onLocationResult(p0)
-                p0.lastLocation?.let { onLocationReceive(it) }
+                p0.lastLocation?.let { location ->
+                    // Gọi cả hai hàm fetch khi có vị trí
+                    val lat = location.latitude
+                    val lon = location.longitude
+                    fetchWeatherFor("$lat,$lon")
+                    fetchNearbyPlaces(lat, lon)
+                    onLocationReceive(location)
+                }
                 fusedLocationClient.removeLocationUpdates(this)
             }
         }
