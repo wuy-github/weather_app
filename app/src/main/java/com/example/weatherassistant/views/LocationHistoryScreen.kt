@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherassistant.R
@@ -47,7 +47,8 @@ private enum class OptionsViewState { GRID, HISTORY, NEARBY }
 fun LocationHistoryScreen(
     viewModel: WeatherDataViewModel,
     onNavigateBack: () -> Unit,
-    onHistoryItemClick: (String) -> Unit
+    onHistoryItemClick: (String) -> Unit, // Callback cho Lịch sử
+    onNearbyPlaceClick: (String) -> Unit  // 👇 THÊM CALLBACK MỚI cho Địa điểm gần đây
 ) {
     var currentView by remember { mutableStateOf(OptionsViewState.GRID) }
     val randomBackground = remember { backgroundList.random() }
@@ -80,9 +81,7 @@ fun LocationHistoryScreen(
                             } else {
                                 onNavigateBack()
                             }
-                        }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Quay lại")
-                        }
+                        }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Quay lại") }
                     },
                     actions = {
                         if (currentView == OptionsViewState.HISTORY) {
@@ -107,7 +106,8 @@ fun LocationHistoryScreen(
                         onShowNearbyClick = { currentView = OptionsViewState.NEARBY }
                     )
                     OptionsViewState.HISTORY -> HistoryList(viewModel, onHistoryItemClick)
-                    OptionsViewState.NEARBY -> NearbyPlacesList(viewModel, onLocationClick = onHistoryItemClick)
+                    // 👇 Truyền callback mới vào
+                    OptionsViewState.NEARBY -> NearbyPlacesList(viewModel, onLocationClick = onNearbyPlaceClick)
                 }
             }
         }
@@ -120,7 +120,7 @@ private fun OptionGrid(onShowHistoryClick: () -> Unit, onShowNearbyClick: () -> 
         columns = GridCells.Fixed(2),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(   16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item { OptionCard("Lịch sử", Icons.Default.History, onShowHistoryClick) }
@@ -162,7 +162,7 @@ private fun HistoryList(viewModel: WeatherDataViewModel, onHistoryItemClick: (St
             contentPadding = PaddingValues(16.dp)
         ) {
             items(history.toList().reversed()) { location ->
-                Text(location, fontSize = 18.sp, color = Color.White,
+                Text(location, fontSize = 22.sp, color = Color.White, fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth().clickable { onHistoryItemClick(location) }.padding(vertical = 12.dp)
                 )
                 HorizontalDivider(color = Color.Gray)
@@ -171,36 +171,24 @@ private fun HistoryList(viewModel: WeatherDataViewModel, onHistoryItemClick: (St
     }
 }
 
-// 👇 HÀM NÀY ĐÃ ĐƯỢC THIẾT KẾ LẠI CHO ĐẸP HƠN
 @Composable
 fun NearbyPlacesList(viewModel: WeatherDataViewModel, onLocationClick: (String) -> Unit) {
     val nearbyPlaces by viewModel.nearbyPlaces.collectAsState()
-
     if (nearbyPlaces.isEmpty()) {
         Box(Modifier.fillMaxSize().padding(16.dp), Alignment.Center) {
             CircularProgressIndicator(color = Color.White)
         }
     } else {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .padding(top = 8.dp)
-                .background(
-                    color = Color.Black.copy(alpha = 0.4f),
-                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-                ),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp).padding(top = 8.dp)
+                .background(Color.Black.copy(alpha = 0.4f), RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
             items(nearbyPlaces) { place ->
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onLocationClick(place.title) }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    modifier = Modifier.fillMaxWidth().clickable { onLocationClick(place.title) }.padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Thêm icon vị trí cho mỗi dòng
                     Icon(
                         imageVector = Icons.Default.LocationOn,
                         contentDescription = "Địa điểm",
@@ -208,20 +196,10 @@ fun NearbyPlacesList(viewModel: WeatherDataViewModel, onLocationClick: (String) 
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
-                    // Tên địa điểm
-                    Text(
-                        text = place.title,
-                        fontSize = 16.sp,
-                        color = Color.White
-                    )
+                    Text(text = place.title, fontSize = 20.sp, color = Color.White, fontWeight = FontWeight.Bold)
                 }
-                // Thêm đường kẻ ngăn cách giữa các mục
                 if (nearbyPlaces.last() != place) {
-                    HorizontalDivider(
-                        color = Color.Gray.copy(alpha = 0.5f),
-                        thickness = 0.5.dp,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
+                    HorizontalDivider(color = Color.Gray.copy(alpha = 0.5f), thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
                 }
             }
         }

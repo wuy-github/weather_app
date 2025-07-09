@@ -60,11 +60,12 @@ fun MainInfo(condition: String, date: LocalDate, temp: Double, maxTemp: Double, 
             )
 
             val displayText = when(condition.lowercase()) {
-                "partly-cloudy" -> "Ít mây"
-                "cloudy" -> "Nhiều mây"
-                "rain" -> " Có Mưa"
-                "partly_cloudy_night" -> "Đêm có một ít mây "
-                "clear_day" -> "Trời trong quang đãng"
+                "partly-cloudy" -> "Ít mây☁\uFE0F"
+                "cloudy" -> "Nhiều mây☁\uFE0F"
+                "rain" -> " Có Mưa\uD83C\uDF27\uFE0F"
+                "partly_cloudy_night" -> "Đêm có một ít mây  "
+                "clear_day" -> "Trời trong quang đãng☀\uFE0F"
+                "clear_night" -> "Trời tối quang đãng có sao ⭐"
                 else -> condition.replace('-', ' ')
             }
 

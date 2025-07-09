@@ -1,6 +1,8 @@
 // File: WeatherApp.kt
 package com.example.weatherassistant
 
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
@@ -61,6 +63,13 @@ fun WeatherApp(viewModel: WeatherDataViewModel) {
                         onHistoryItemClick = { location ->
                             navController.popBackStack()
                             viewModel.fetchWeatherFor(location)
+                        },
+                        onNearbyPlaceClick = { destination ->
+
+                            val intentUri = Uri.parse("geo:0,0?q=${Uri.encode(destination)}")
+                            val mapIntent = Intent(Intent.ACTION_VIEW, intentUri)
+
+                            context.startActivity(mapIntent)
                         }
                     )
                 }
