@@ -19,6 +19,7 @@ import com.example.weatherassistant.UIState.WeatherUIState
 import com.example.weatherassistant.viewmodel.WeatherDataViewModel
 import com.example.weatherassistant.views.LocationHistoryScreen
 import com.example.weatherassistant.views.MainScreen
+import com.example.weatherassistant.views.MapScreen
 
 @Composable
 fun WeatherApp(viewModel: WeatherDataViewModel) {
@@ -44,6 +45,8 @@ fun WeatherApp(viewModel: WeatherDataViewModel) {
     }
 
     val navController = rememberNavController()
+    var currentLat = viewModel.wholeResponseData.value?.latitude ?: 60.0
+    var currentLon = viewModel.wholeResponseData.value?.longitude ?: 100.0
 
     // Lựa chọn giao diện dựa trên trạng thái
     when (uiState) {
@@ -70,9 +73,17 @@ fun WeatherApp(viewModel: WeatherDataViewModel) {
                             val mapIntent = Intent(Intent.ACTION_VIEW, intentUri)
 
                             context.startActivity(mapIntent)
+                        },
+                        onMapViewClick = { latLng ->
+                            Log.d("LatLng", "${latLng.latitude} - ${latLng.longitude}")
+                            currentLat = latLng.latitude
+                            currentLon = latLng.longitude
+                            Log.d("LatLng", "$currentLat - $currentLon")
+                            navController.navigate("map_screen")
                         }
                     )
                 }
+                composable("map_screen") { MapScreen(context = context, lat = currentLat, lon = currentLon) }
             }
         }
         is WeatherUIState.Loading -> LoadingScreen()

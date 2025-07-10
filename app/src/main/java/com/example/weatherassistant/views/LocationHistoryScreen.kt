@@ -1,5 +1,6 @@
 package com.example.weatherassistant.views
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherassistant.R
 import com.example.weatherassistant.viewmodel.WeatherDataViewModel
+import com.mapbox.mapboxsdk.geometry.LatLng
 
 private val backgroundList = listOf(
     R.drawable.bg_clear_day, R.drawable.bg_clear_night, R.drawable.bg_cloudy,
@@ -40,7 +43,7 @@ private val cardColorList = listOf(
     Color(0xFFF8BBD0), Color(0xFFD1C4E9), Color(0xFFFFE0B2)
 )
 
-private enum class OptionsViewState { GRID, HISTORY, NEARBY }
+private enum class OptionsViewState { GRID, HISTORY, NEARBY, MAP }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +51,8 @@ fun LocationHistoryScreen(
     viewModel: WeatherDataViewModel,
     onNavigateBack: () -> Unit,
     onHistoryItemClick: (String) -> Unit, // Callback cho Lịch sử
-    onNearbyPlaceClick: (String) -> Unit  // 👇 THÊM CALLBACK MỚI cho Địa điểm gần đây
+    onNearbyPlaceClick: (String) -> Unit,  // 👇 THÊM CALLBACK MỚI cho Địa điểm gần đây
+    onMapViewClick: (LatLng) -> Unit
 ) {
     var currentView by remember { mutableStateOf(OptionsViewState.GRID) }
     val randomBackground = remember { backgroundList.random() }
@@ -71,6 +75,7 @@ fun LocationHistoryScreen(
                                 OptionsViewState.GRID -> "Tùy chọn"
                                 OptionsViewState.HISTORY -> "Lịch sử tìm kiếm"
                                 OptionsViewState.NEARBY -> "Địa điểm gần đây"
+                                OptionsViewState.MAP -> "Bản đồ thời tiết"
                             }
                         )
                     },
@@ -103,11 +108,19 @@ fun LocationHistoryScreen(
                 when (currentView) {
                     OptionsViewState.GRID -> OptionGrid(
                         onShowHistoryClick = { currentView = OptionsViewState.HISTORY },
-                        onShowNearbyClick = { currentView = OptionsViewState.NEARBY }
+                        onShowNearbyClick = { currentView = OptionsViewState.NEARBY },
+                        onShowMapViewClick = { currentView = OptionsViewState.MAP}
                     )
                     OptionsViewState.HISTORY -> HistoryList(viewModel, onHistoryItemClick)
                     // 👇 Truyền callback mới vào
                     OptionsViewState.NEARBY -> NearbyPlacesList(viewModel, onLocationClick = onNearbyPlaceClick)
+                    // Map Option:
+                    OptionsViewState.MAP -> {
+                        val lat = viewModel.wholeResponseData.value?.latitude ?: 0.0
+                        val lon = viewModel.wholeResponseData.value?. longitude ?: 0.0
+                        Log.d("LatLng", "Lat: $lat - Lon: $lon - in LocationHistoryScreen")
+                        onMapViewClick(LatLng(lat, lon))
+                    }
                 }
             }
         }
@@ -115,7 +128,7 @@ fun LocationHistoryScreen(
 }
 
 @Composable
-private fun OptionGrid(onShowHistoryClick: () -> Unit, onShowNearbyClick: () -> Unit) {
+private fun OptionGrid(onShowHistoryClick: () -> Unit, onShowNearbyClick: () -> Unit, onShowMapViewClick: () -> Unit) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
         modifier = Modifier.fillMaxSize(),
@@ -125,6 +138,7 @@ private fun OptionGrid(onShowHistoryClick: () -> Unit, onShowNearbyClick: () -> 
     ) {
         item { OptionCard("Lịch sử", Icons.Default.History, onShowHistoryClick) }
         item { OptionCard("Gần đây", Icons.Default.Place, onShowNearbyClick) }
+        item { OptionCard("Bản đồ thời tiết", Icons.Filled.Map, onShowMapViewClick) }
     }
 }
 

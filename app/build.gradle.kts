@@ -75,7 +75,6 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0") // Parse Json data
     implementation("com.google.android.gms:play-services-location:21.0.1") // Location Services Library
 
-
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 
     implementation("androidx.datastore:datastore-preferences:1.1.1")
@@ -85,6 +84,10 @@ dependencies {
     //icon
     implementation("androidx.compose.material:material-icons-extended-android:1.6.7")
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.33.2-alpha")
+    // MapLibre install:
+    implementation("org.maplibre.gl:android-sdk:9.5.0")
+    // Coroutines:
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

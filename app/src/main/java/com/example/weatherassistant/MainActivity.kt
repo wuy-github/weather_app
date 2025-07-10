@@ -16,12 +16,15 @@ import com.example.weatherassistant.ui.theme.WeatherAssistantTheme
 import com.example.weatherassistant.viewmodel.WeatherDataViewModel
 import com.example.weatherassistant.viewmodel.WeatherDataViewModelFactory
 import com.example.weatherassistant.data.repository.WikipediaRepository
+import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.WellKnownTileServer
 
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        Mapbox.getInstance(this, "dummy-key", WellKnownTileServer.MapLibre) // Không cần thật, chỉ để vượt qua check
         setContent {
             WeatherAssistantTheme {
                 val context = LocalContext.current
