@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.weatherassistant.Model.WeatherFlashData
 import com.example.weatherassistant.data.model.Minutely15Data
 import com.example.weatherassistant.data.remote.RetrofitWeatherFlashInstance
-import com.mapbox.mapboxsdk.geometry.LatLng
+import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -36,9 +36,10 @@ class WeatherFlashViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val response = openMeteoService.getWeatherFlashData(lat, lon)
+                val googleLatLng = LatLng(response.latitude, response.longitude)
 
                 val weatherData = WeatherFlashData(
-                    latLng = LatLng(response.latitude, response.longitude),
+                    latLng = googleLatLng,
                     temperature_2m = response.current.temperature_2m,
                     rain = response.current.rain
                 )

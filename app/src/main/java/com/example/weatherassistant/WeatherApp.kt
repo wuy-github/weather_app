@@ -1,15 +1,15 @@
-// File: WeatherApp.kt
 package com.example.weatherassistant
 
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -27,15 +27,10 @@ fun WeatherApp(viewModel: WeatherDataViewModel) {
     val context = LocalContext.current
     var hasFetched by remember { mutableStateOf(false) }
 
-    // Logic lấy vị trí lần đầu
     LaunchedEffect(Unit) {
         if (!hasFetched) {
             viewModel.getCurrentLocation(context = context) { location ->
-                if (location != null) {
-                    val lat = location.latitude
-                    val long = location.longitude
-                    viewModel.fetchWeatherFor("$lat,$long")
-                } else {
+                if (location == null) {
                     viewModel.setError("Không lấy được vị trí thiết bị")
                     Log.e("CurrentLocation", "❌ Không lấy được vị trí hiện tại")
                 }
@@ -45,10 +40,12 @@ fun WeatherApp(viewModel: WeatherDataViewModel) {
     }
 
     val navController = rememberNavController()
-    var currentLat = viewModel.wholeResponseData.value?.latitude ?: 60.0
-    var currentLon = viewModel.wholeResponseData.value?.longitude ?: 100.0
+    val wholeData by viewModel.wholeResponseData.collectAsState()
 
-    // Lựa chọn giao diện dựa trên trạng thái
+    // 👇 1. Dùng remember và mutableStateOf để lưu trạng thái tọa độ
+    var currentLat by remember(wholeData) { mutableStateOf(wholeData?.latitude ?: 21.0333) }
+    var currentLon by remember(wholeData) { mutableStateOf(wholeData?.longitude ?: 105.8500) }
+
     when (uiState) {
         is WeatherUIState.Success -> {
             NavHost(navController = navController, startDestination = "main_screen") {
@@ -68,26 +65,32 @@ fun WeatherApp(viewModel: WeatherDataViewModel) {
                             viewModel.fetchWeatherFor(location)
                         },
                         onNearbyPlaceClick = { destination ->
-
                             val intentUri = Uri.parse("geo:0,0?q=${Uri.encode(destination)}")
                             val mapIntent = Intent(Intent.ACTION_VIEW, intentUri)
-
                             context.startActivity(mapIntent)
                         },
+                        // Giả sử bạn có một nút "Xem bản đồ" trong LocationHistoryScreen
+                        // Khi nhấn nút đó, nó sẽ cập nhật tọa độ và điều hướng
                         onMapViewClick = { latLng ->
-                            Log.d("LatLng", "${latLng.latitude} - ${latLng.longitude}")
                             currentLat = latLng.latitude
                             currentLon = latLng.longitude
-                            Log.d("LatLng", "$currentLat - $currentLon")
                             navController.navigate("map_screen")
                         }
                     )
                 }
-                composable("map_screen") { MapScreen(context = context, lat = currentLat, lon = currentLon) }
+                composable("map_screen") {
+                    MapScreen(
+                        context = context,
+                        lat = currentLat,
+                        lon = currentLon,
+
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
             }
         }
         is WeatherUIState.Loading -> LoadingScreen()
-        is WeatherUIState.Empty -> Text("Không có dữ liệu hiển thị", modifier = Modifier.padding(16.dp))
+        is WeatherUIState.Empty -> Column(Modifier.fillMaxSize().background(Color.White)) {}
         is WeatherUIState.Error -> ErrorScreen("Failed")
     }
 }

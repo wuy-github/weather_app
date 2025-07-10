@@ -66,6 +66,7 @@ fun MainInfo(condition: String, date: LocalDate, temp: Double, maxTemp: Double, 
                 "partly_cloudy_night" -> "Đêm có một ít mây  "
                 "clear_day" -> "Trời trong quang đãng☀\uFE0F"
                 "clear_night" -> "Trời tối quang đãng có sao ⭐"
+                "partly_cloudy_day" -> "Trời nhiều mây☁\uFE0F "
                 else -> condition.replace('-', ' ')
             }
 

@@ -20,9 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.weatherassistant.Model.WeatherFlashData
-import kotlin.let
-import kotlin.run
-import kotlin.text.format
+import java.util.Locale
 
 @Composable
 fun WeatherInfoCard(weatherData: WeatherFlashData?, onClose: () -> Unit) {
@@ -61,8 +59,9 @@ fun WeatherInfoCard(weatherData: WeatherFlashData?, onClose: () -> Unit) {
             Divider(color = Color.White.copy(alpha = 0.2f))
 
             weatherData.latLng?.let { latLng ->
-                WeatherRowItem(label = "Vĩ độ", value = "%.4f".format(latLng.latitude))
-                WeatherRowItem(label = "Kinh độ", value = "%.4f".format(latLng.longitude))
+                // SỬA LẠI CÁCH GỌI HÀM FORMAT
+                WeatherRowItem(label = "Vĩ độ", value = String.format(Locale.US, "%.4f", latLng.latitude))
+                WeatherRowItem(label = "Kinh độ", value = String.format(Locale.US, "%.4f", latLng.longitude))
             } ?: run {
                 WeatherRowItem(label = "Vị trí", value = "Không có dữ liệu")
             }

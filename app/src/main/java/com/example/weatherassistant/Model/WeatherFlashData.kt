@@ -1,6 +1,9 @@
 package com.example.weatherassistant.Model
 
-import com.mapbox.mapboxsdk.geometry.LatLng
+import com.google.android.gms.maps.model.LatLng
+
+
+
 
 data class WeatherFlashData (
     val locationName: String? = null,

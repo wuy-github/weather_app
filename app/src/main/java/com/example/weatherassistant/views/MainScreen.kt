@@ -36,9 +36,16 @@ import androidx.compose.foundation.layout.statusBarsPadding
 
 
 @Composable
-fun MainScreen(viewModel: WeatherDataViewModel = viewModel(), context: Context, onLocationClick: () -> Unit){
-    var dayIndex by remember { mutableStateOf(viewModel.getTodayIndex() ?: 0) }
+fun MainScreen(
+    viewModel: WeatherDataViewModel = viewModel(),
+    context: Context,
+    onLocationClick: () -> Unit,
+
+
+){
     val wholeData by viewModel.wholeResponseData.collectAsState()
+    var dayIndex by remember { mutableStateOf(viewModel.getTodayIndex() ?: 0) }
+
     val data  by  remember (dayIndex, wholeData) {
         derivedStateOf {
             if (viewModel.listDaysData.isNotEmpty()){
@@ -60,6 +67,7 @@ fun MainScreen(viewModel: WeatherDataViewModel = viewModel(), context: Context, 
     Box(
         modifier = Modifier.fillMaxSize()
     ){
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
