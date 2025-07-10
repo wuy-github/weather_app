@@ -20,25 +20,48 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material3.Icon
+import androidx.compose.ui.text.font.FontWeight
+import com.example.weatherassistant.R
+import androidx.compose.ui.text.font.FontFamily
+
 
 @Composable
 fun LoadingScreen(){
-    var loading by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceEvenly
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        if(!loading) {
-            Button(onClick = {loading = true}, enabled = !loading) { Text("Start Loading")}
-        } else {
-            CircularProgressIndicator(
-                modifier = Modifier.size(100.dp),
-                color = Color(0xFF003300),
-                trackColor = Color(0xFFCC33DD),
-                strokeWidth = 5.dp
+        Image(
+            painter = painterResource(id = R.drawable.bg_load),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.main_icon_partly_cloudy_day),
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(200.dp)
+            )
+            Text(
+                text = "Thời tiết hôm nay",
+                color = Color.White,
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.SansSerif
             )
         }
     }
