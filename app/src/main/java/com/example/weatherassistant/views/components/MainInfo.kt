@@ -1,6 +1,7 @@
 package com.example.weatherassistant.views.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -30,6 +31,8 @@ import com.example.weatherassistant.R
 import java.time.LocalDate
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 
 @Composable
@@ -40,16 +43,17 @@ fun MainInfo(condition: String, date: LocalDate, temp: Double, maxTemp: Double, 
 
     Row(
         modifier = Modifier.fillMaxWidth()
-            .fillMaxHeight(0.4f)
+            .fillMaxHeight(0.37f)
             .padding(horizontal = 10.dp)
-            .padding(top = 20.dp)
+            .padding(top = 15.dp)
     ){
         // Main Icon and condition:
         Column(
             modifier = Modifier
                 .fillMaxWidth(0.4f)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.Center,
+                .fillMaxHeight()
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally // căn giữa icon + text
         ) {
             Icon(
@@ -91,13 +95,13 @@ fun MainInfo(condition: String, date: LocalDate, temp: Double, maxTemp: Double, 
         ) {
             Text(
                 text = WhatTheDay(date),
-                fontSize = 30.sp,
+                fontSize = 26.sp,
+                maxLines = 1,
                 color = Color(0xDD000000),
-                fontFamily = FontFamily(Font(R.font.robotomono_bold))
-            )
+                fontFamily = FontFamily(Font(R.font.robotomono_bold)))
             Text(
                 text = "$temp°C",
-                fontSize = 60.sp,
+                fontSize = 40.sp,
                 color = Color.Black,
                 fontFamily = FontFamily(Font(R.font.robotomono_bold)),
                 lineHeight = 81.sp,
@@ -114,12 +118,16 @@ fun MainInfo(condition: String, date: LocalDate, temp: Double, maxTemp: Double, 
             Text(
                 text = "Cao nhất: " + "${maxTemp}" + "°C",
                 fontSize = 20.sp,
-                fontFamily = FontFamily(Font(R.font.robotomono_semibolditalic))
+                fontFamily = FontFamily(Font(R.font.robotomono_semibolditalic)),
+                maxLines = 1,
+                modifier = Modifier.horizontalScroll(rememberScrollState())
             )
             Text(
                 text = "Thấp nhất: " + "${minTemp}" + "°C",
                 fontSize = 20.sp,
-                fontFamily = FontFamily(Font(R.font.robotomono_semibolditalic))
+                fontFamily = FontFamily(Font(R.font.robotomono_semibolditalic)),
+                maxLines = 1,
+                modifier = Modifier.horizontalScroll(rememberScrollState())
             )
         }
     }
@@ -130,7 +138,7 @@ fun MainInfo(condition: String, date: LocalDate, temp: Double, maxTemp: Double, 
 fun DateContainer(date: LocalDate){
     Column(
         modifier = Modifier.fillMaxWidth()
-            .padding(top = 20.dp),
+            .padding(top = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
