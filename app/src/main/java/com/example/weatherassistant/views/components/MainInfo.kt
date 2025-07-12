@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.example.weatherassistant.R
 import java.time.LocalDate
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
 
 
 @Composable
@@ -56,7 +57,8 @@ fun MainInfo(condition: String, date: LocalDate, temp: Double, maxTemp: Double, 
                 contentDescription = "Main Icon",
                 modifier = Modifier
                     .size(200.dp)
-                    .padding(bottom = 4.dp)
+                    .padding(bottom = 4.dp),
+                tint = Color.Unspecified
             )
 
             val displayText = when(condition.lowercase()) {

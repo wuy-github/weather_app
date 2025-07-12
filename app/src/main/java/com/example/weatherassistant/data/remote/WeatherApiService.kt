@@ -12,7 +12,7 @@ interface WeatherApiService {
         @Path("location") location: String,
         @Query("unitGroup") unitGroup: String = "metric",
        // @Query("include") include: String = "hours",
-        @Query("key") key: String
+        @Query("key") key: String = "V6ZRVXTAQZC5ZP6XECH6K8X6R"
     ): WeatherApiResponse
 
     @GET("VisualCrossingWebServices/rest/services/timeline/{location}")

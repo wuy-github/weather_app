@@ -1,10 +1,13 @@
 package com.example.weatherassistant.views
 
 import android.content.Context
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -24,7 +27,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherassistant.viewmodel.WeatherDataViewModel
 import com.example.weatherassistant.views.components.DateContainer
 import com.example.weatherassistant.views.components.DaySwitchingButton
-import com.example.weatherassistant.views.components.DetailInfo
+import com.example.weatherassistant.views.components.InfoPager
 import com.example.weatherassistant.views.components.ErrorData
 import com.example.weatherassistant.views.components.LocationButton
 import com.example.weatherassistant.views.components.MainInfo
@@ -33,15 +36,14 @@ import com.example.weatherassistant.views.components.SearchBar
 import com.example.weatherassistant.views.components.parseResIdFromTitle
 import java.time.LocalTime
 import androidx.compose.foundation.layout.statusBarsPadding
+import com.example.weatherassistant.views.components.CurrentLocationButton
 
 
 @Composable
 fun MainScreen(
     viewModel: WeatherDataViewModel = viewModel(),
     context: Context,
-    onLocationClick: () -> Unit,
-
-
+    onLocationClick: () -> Unit
 ){
     val wholeData by viewModel.wholeResponseData.collectAsState()
     var dayIndex by remember { mutableStateOf(viewModel.getTodayIndex() ?: 0) }
@@ -51,6 +53,15 @@ fun MainScreen(
             if (viewModel.listDaysData.isNotEmpty()){
                 viewModel.getWeatherDataByHour(dayIndex, LocalTime.now().hour)
             } else ErrorData
+        }
+    }
+    val hourDatas by remember (dayIndex, wholeData) {
+        derivedStateOf {
+            if (viewModel.listDaysData.isNotEmpty()) {
+                wholeData?.days?.getOrNull(dayIndex)?.hours ?: emptyList()
+            } else {
+                emptyList()
+            }
         }
     }
     val notificationMessage = viewModel.notification.collectAsState()
@@ -82,7 +93,16 @@ fun MainScreen(
                 viewModel.fetchWeatherFor(location)
 
             }
-            LocationButton(location = data.location, locationName = data.locationName, onClick = onLocationClick)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                CurrentLocationButton(context, viewModel) { location ->
+                    viewModel.fetchWeatherFor("${location.latitude},${location.longitude}")
+                    viewModel.fetchNearbyPlaces(location.latitude, location.longitude)
+                }
+                LocationButton(location = data.location, locationName = data.locationName, onClick = onLocationClick)
+            }
             MainInfo(
                 condition = data.condition.replace('-', '_'),
                 date = data.date,
@@ -94,7 +114,7 @@ fun MainScreen(
 
             Spacer(Modifier.height(30.dp))
 
-            DetailInfo(data)
+            InfoPager(context,data, hourDatas)
 
             DaySwitchingButton(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),

@@ -3,6 +3,7 @@ package com.example.weatherassistant.views.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
@@ -57,13 +59,12 @@ fun SearchBar(modifier: Modifier = Modifier, onSearching: (String) -> Unit){
                 )
             }
         },
-
         textStyle = androidx.compose.ui.text.TextStyle(
             fontWeight = FontWeight.ExtraBold,
             color = Color.Black,
             fontSize = 20.sp
         ),
-
+        singleLine = true,
         trailingIcon = {
             var isPressed by remember { mutableStateOf(false) }
 
@@ -87,7 +88,7 @@ fun SearchBar(modifier: Modifier = Modifier, onSearching: (String) -> Unit){
                 )
             }
         },
-                modifier = modifier
+        modifier = modifier
             .padding(horizontal = 20.dp)
             .padding(top = 20.dp),
         shape = RoundedCornerShape(percent = 20),
@@ -108,7 +109,6 @@ fun LocationButton(modifier: Modifier = Modifier, location: String, locationName
     Row(
         modifier = Modifier.fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 10.dp)
-
             .clickable(onClick = { onClick() }),
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically
@@ -124,9 +124,11 @@ fun LocationButton(modifier: Modifier = Modifier, location: String, locationName
             fontWeight = FontWeight.Bold,
             color = Color.Black,
             fontSize = 25.sp,
+            maxLines = 2,
             modifier = Modifier
                 .background(color = Color.White.copy(alpha = 0.001f)) // nền trắng mờ
                 .padding(horizontal = 8.dp, vertical = 4.dp)
+                .horizontalScroll(rememberScrollState())
         )
     }
 }

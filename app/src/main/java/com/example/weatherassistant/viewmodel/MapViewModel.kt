@@ -61,7 +61,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         style.addSource(imageSource)
 
         val imageLayer = RasterLayer("weather-layer", "weather-overlay").apply {
-            setProperties(PropertyFactory.rasterOpacity(0.7f))
+            setProperties(PropertyFactory.rasterOpacity(1.5f))
         }
         style.addLayer(imageLayer)
     }

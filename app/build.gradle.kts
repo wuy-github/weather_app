@@ -75,6 +75,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0") // Parse Json data
     implementation("com.google.android.gms:play-services-location:21.0.1") // Location Services Library
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0") // hoặc mới nhất
+
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 

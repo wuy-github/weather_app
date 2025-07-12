@@ -1,11 +1,21 @@
 package com.example.weatherassistant.viewmodel
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Location
+import android.os.Looper
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weatherassistant.Model.WeatherFlashData
 import com.example.weatherassistant.data.model.Minutely15Data
 import com.example.weatherassistant.data.remote.RetrofitWeatherFlashInstance
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.model.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -98,6 +108,44 @@ class WeatherFlashViewModel : ViewModel() {
 
     fun clearWeatherData() {
         _weatherFlashData.value = null
+    }
+
+    fun getCurrentLocation(context: Context, onLocationReceive: (Location?) -> Unit) {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+
+        val locationRequest = LocationRequest.create().apply {
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+            interval = 1000
+            numUpdates = 1
+        }
+
+        val locationCallBack = object : LocationCallback() {
+            override fun onLocationResult(p0: LocationResult) {
+                super.onLocationResult(p0)
+                p0.lastLocation?.let { location ->
+                    onLocationReceive(location)
+                }
+                fusedLocationClient.removeLocationUpdates(this)
+            }
+        }
+
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            onLocationReceive(null)
+            return
+        }
+
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallBack,
+            Looper.getMainLooper()
+        )
     }
 
 }

@@ -29,12 +29,7 @@ fun WeatherApp(viewModel: WeatherDataViewModel) {
 
     LaunchedEffect(Unit) {
         if (!hasFetched) {
-            viewModel.getCurrentLocation(context = context) { location ->
-                if (location == null) {
-                    viewModel.setError("Không lấy được vị trí thiết bị")
-                    Log.e("CurrentLocation", "❌ Không lấy được vị trí hiện tại")
-                }
-            }
+            viewModel.fetchCurrentLocationWeatherData(context = context)
             hasFetched = true
         }
     }
@@ -83,7 +78,7 @@ fun WeatherApp(viewModel: WeatherDataViewModel) {
                         context = context,
                         lat = currentLat,
                         lon = currentLon,
-
+                        weatherDataViewModel = viewModel,
                         onNavigateBack = { navController.popBackStack() }
                     )
                 }

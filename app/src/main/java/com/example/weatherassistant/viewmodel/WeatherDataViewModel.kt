@@ -14,6 +14,7 @@ import com.example.weatherassistant.UIState.WeatherUIState
 import com.example.weatherassistant.data.model.GeoSearchItem
 import com.example.weatherassistant.data.model.WeatherApiResponse
 import com.example.weatherassistant.data.model.WeatherDay
+import com.example.weatherassistant.data.remote.LocationHelper.resolveLocationName
 import com.example.weatherassistant.data.remote.RetrofitInstance
 import com.example.weatherassistant.data.repository.WikipediaRepository
 import com.example.weatherassistant.data.repository.UserPreferencesRepository
@@ -61,18 +62,23 @@ class WeatherDataViewModel(
 
             try {
                 val apiKey = "QLB4PA4P58FEG5B3E3M2CZQ7P"
-                val response: WeatherApiResponse =
-                    RetrofitInstance.apiService.getTodayWeather(location, key = apiKey)
-                _wholeResponseData.value = response
+                val rawResponse: WeatherApiResponse = RetrofitInstance.apiService.getTodayWeather(location, key = apiKey)
+                val resolvedAddress = resolveLocationName(rawResponse.address)
+
+                _wholeResponseData.value = rawResponse.copy(address = resolvedAddress)
+
+                // Make sure the address to be Location name:
+                    Log.d("ChangedLocationName", "✅ Resolve = ${_wholeResponseData.value?.address}")
+
                 _uiState.value = WeatherUIState.Success
-                Log.d("fetchData", "✅ Successfully fetched data for $location")
+                Log.d("fetchData", "✅ Successfully fetched data for $location \n ${RetrofitInstance.apiService.getTodayWeather(location, key = apiKey)}")
 
-                fetchNearbyPlaces(response.latitude, response.longitude)
-
+                fetchNearbyPlaces(rawResponse.latitude, rawResponse.longitude)
                 if (location.isNotBlank() && !location.contains(",")) {
                     userPreferencesRepository.addLocationToHistory(location)
                     Log.d("DataStore", "✅ Saved '$location' to history.")
                 }
+
 
             } catch (e: Exception) {
                 showNotification("❌ Địa điểm bạn nhập không hợp lệ ❌")
@@ -81,9 +87,9 @@ class WeatherDataViewModel(
         }
     }
 
-    fun fetchNearbyPlaces(lat: Double, lon: Double) {
+    fun fetchNearbyPlaces(lat: Double?, lon: Double?) {
         viewModelScope.launch {
-            val places = wikipediaRepository.getNearbyPlaces(lat, lon)
+            val places = if (lat != null && lon != null) wikipediaRepository.getNearbyPlaces(lat, lon) else null
             if (places != null) {
                 _nearbyPlaces.value = places
                 Log.d("WikipediaAPI", "✅ Found ${places.size} nearby places.")
@@ -106,11 +112,6 @@ class WeatherDataViewModel(
             override fun onLocationResult(p0: LocationResult) {
                 super.onLocationResult(p0)
                 p0.lastLocation?.let { location ->
-                    // Gọi cả hai hàm fetch khi có vị trí
-                    val lat = location.latitude
-                    val lon = location.longitude
-                    fetchWeatherFor("$lat,$lon")
-                    fetchNearbyPlaces(lat, lon)
                     onLocationReceive(location)
                 }
                 fusedLocationClient.removeLocationUpdates(this)
@@ -134,6 +135,22 @@ class WeatherDataViewModel(
             locationCallBack,
             Looper.getMainLooper()
         )
+    }
+
+    // Perform Current Location Weather Data Fetch:
+    fun fetchCurrentLocationWeatherData(context: Context) {
+        getCurrentLocation(context) { location ->
+            if (location == null) {
+                setError("Không lấy được vị trí thiết bị")
+                Log.e("CurrentLocation", "❌ Không lấy được vị trí hiện tại")
+            } else {
+                // Gọi cả hai hàm fetch khi có vị trí
+                val lat = location.latitude
+                val lon = location.longitude
+                fetchWeatherFor("$lat,$lon")
+                fetchNearbyPlaces(lat, lon)
+            }
+        }
     }
 
     fun setError(message: String) {
@@ -200,3 +217,4 @@ class WeatherDataViewModel(
         }
     }
 }
+

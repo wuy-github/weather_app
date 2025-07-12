@@ -7,8 +7,11 @@ import android.graphics.BitmapFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Minimize
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,7 +25,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherassistant.R
 import com.example.weatherassistant.viewmodel.MapViewModel
+import com.example.weatherassistant.viewmodel.WeatherDataViewModel
 import com.example.weatherassistant.viewmodel.WeatherFlashViewModel
+import com.example.weatherassistant.views.components.CurrentLocationButton
 import com.example.weatherassistant.views.components.WeatherInfoCard
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.Point
@@ -41,6 +46,7 @@ fun MapScreen(
     context: Context,
     lat: Double,
     lon: Double,
+    weatherDataViewModel: WeatherDataViewModel,
     flashViewModel: WeatherFlashViewModel = viewModel(),
     onNavigateBack: () -> Unit
 ) {
@@ -116,6 +122,57 @@ fun MapScreen(
                 val weatherData by flashViewModel.weatherFlashData.collectAsState()
                 weatherData?.let {
                     WeatherInfoCard(weatherData = it, onClose = { flashViewModel.clearWeatherData() })
+                }
+                Column(
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .background(color = Color(0x55FFFFFF), shape = RoundedCornerShape(5.dp))
+                        .align(alignment = Alignment.BottomEnd),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    if (mapViewModel.layerType.value == "none") {
+                        IconButton(
+                            onClick = {
+                                mapboxMap?.let { map ->
+                                    val currentZoom = map.cameraPosition.zoom
+                                    map.animateCamera(CameraUpdateFactory.zoomTo(currentZoom + 1.0))
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Add,
+                                contentDescription = null
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                mapboxMap?.let { map ->
+                                    val currentZoom = map.cameraPosition.zoom
+                                    map.animateCamera(CameraUpdateFactory.zoomTo(currentZoom - 1.0))
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Minimize,
+                                contentDescription = null
+                            )
+                        }
+                    }
+                    CurrentLocationButton(context, weatherDataViewModel, enableLabel = false) { location ->
+                        val lat = location.latitude
+                        val lon = location.longitude
+                        mapboxMap?.let { map ->
+                            map.setCameraPosition(
+                                CameraPosition.Builder().target(LatLng(lat, lon)).zoom(10.0).build()
+                            )
+                        }
+                        mapViewModel.mapStyle.value?.let { style ->
+                            (style.getSource("marker-source-id") as? GeoJsonSource)
+                                ?.setGeoJson(Feature.fromGeometry(Point.fromLngLat(lon, lat)))
+                            flashViewModel.fetchData(lat, lon)
+                        }
+                    }
                 }
             }
             BottomActionBar(selectedLayer = mapViewModel.layerType.value) { newLayer ->

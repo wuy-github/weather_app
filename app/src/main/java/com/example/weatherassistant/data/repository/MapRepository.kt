@@ -88,7 +88,7 @@ class MapRepository(private val context: Context) {
                 }
 
                 override fun onResponse(call: Call, response: Response) {
-                    response.body()?.use { body ->
+                    response.body?.use { body ->
                         val tileBitmap = BitmapFactory.decodeStream(body.byteStream())
                         if (tileBitmap != null) {
                             synchronized(finalBitmap) {
