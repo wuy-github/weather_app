@@ -24,9 +24,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherassistant.R
+import com.example.weatherassistant.data.repository.WeatherFlashDataRepository
 import com.example.weatherassistant.viewmodel.MapViewModel
 import com.example.weatherassistant.viewmodel.WeatherDataViewModel
 import com.example.weatherassistant.viewmodel.WeatherFlashViewModel
+import com.example.weatherassistant.viewmodel.factory.WeatherFlashViewModelFactory
 import com.example.weatherassistant.views.components.CurrentLocationButton
 import com.example.weatherassistant.views.components.WeatherInfoCard
 import com.mapbox.geojson.Feature
@@ -47,7 +49,6 @@ fun MapScreen(
     lat: Double,
     lon: Double,
     weatherDataViewModel: WeatherDataViewModel,
-    flashViewModel: WeatherFlashViewModel = viewModel(),
     onNavigateBack: () -> Unit
 ) {
     val application = LocalContext.current.applicationContext as Application
@@ -55,12 +56,21 @@ fun MapScreen(
         factory = ViewModelProvider.AndroidViewModelFactory(application)
     )
 
+    val flashDataRepository = remember{ WeatherFlashDataRepository(context) }
+    val flashViewModerFactory = remember {
+        WeatherFlashViewModelFactory(application, flashDataRepository)
+    }
+    val flashViewModel: WeatherFlashViewModel = viewModel(factory = flashViewModerFactory)
+
     val json = context.assets.open("osm_style.json").bufferedReader().use { it.readText() }
     val markerBitmap = remember {
         BitmapFactory.decodeResource(context.resources, R.drawable.ic_marker)
             .copy(Bitmap.Config.ARGB_8888, true)
     }
     var mapboxMap by remember { mutableStateOf<com.mapbox.mapboxsdk.maps.MapboxMap?>(null) }
+    // Get Weather Flash Data:
+    val weatherData by flashViewModel.weatherFlashData.collectAsState()
+
 
     // Theo dõi sự thay đổi của layerType để ra lệnh cho ViewModel
     LaunchedEffect(mapViewModel.layerType.value) {
@@ -119,10 +129,7 @@ fun MapScreen(
                         }
                     }
                 )
-                val weatherData by flashViewModel.weatherFlashData.collectAsState()
-                weatherData?.let {
-                    WeatherInfoCard(weatherData = it, onClose = { flashViewModel.clearWeatherData() })
-                }
+                // Zoom modifying and come to the current location Bar:
                 Column(
                     modifier = Modifier
                         .padding(10.dp)
@@ -174,7 +181,12 @@ fun MapScreen(
                         }
                     }
                 }
+
+                weatherData?.let {
+                    WeatherInfoCard(weatherData = it, onClose = { flashViewModel.clearWeatherData() })
+                }
             }
+
             BottomActionBar(selectedLayer = mapViewModel.layerType.value) { newLayer ->
                 mapViewModel.layerType.value = newLayer
 

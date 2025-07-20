@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1080556149309",
+    "project_id": "weather-assistant-4908e",
+    "storage_bucket": "weather-assistant-4908e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1080556149309:android:576e190ca97e5be5e4a854",
+        "android_client_info": {
+          "package_name": "com.example.weatherassistant"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDe6em7TmEvDUMpPzHvRJfGYs-K1Zklpj0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

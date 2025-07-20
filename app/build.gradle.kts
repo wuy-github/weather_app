@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("org.jetbrains.kotlin.kapt")
+    id("com.google.gms.google-services")
 }
 
 // Đọc file local.properties
@@ -54,6 +55,9 @@ android {
         compose = true
         buildConfig = true
     }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.12"
+    }
 }
 
 dependencies {
@@ -71,12 +75,11 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation(libs.play.services.maps)
-    kapt("com.squareup.moshi:moshi-kotlin-codegen:1.14.0")
+//    kapt("com.squareup.moshi:moshi-kotlin-codegen:1.14.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0") // Parse Json data
     implementation("com.google.android.gms:play-services-location:21.0.1") // Location Services Library
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0") // hoặc mới nhất
-
 
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
 
@@ -92,6 +95,19 @@ dependencies {
     // Coroutines:
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("com.google.android.gms:play-services-maps:18.2.0")
+    // Import the Firebase BoM
+    implementation ( platform ( "com.google.firebase:firebase-bom:33.16.0" ))
+    // Firebase Notification Pushing service:
+    implementation("com.google.firebase:firebase-messaging:24.1.2")
+    // Firebase Store service:
+    implementation("com.google.firebase:firebase-firestore-ktx:25.1.4")
+    // Firebase Authenticating service:
+    implementation("com.google.firebase:firebase-auth-ktx:23.2.1")
+    // When using the BoM, don't specify versions in Firebase dependencies
+    implementation ( "com.google.firebase:firebase-analytics" )
+    // Add WorkManager for Periodic Work: (Here, i use for automatically notifing merchanism)
+    implementation("androidx.work:work-runtime-ktx:2.10.2")
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

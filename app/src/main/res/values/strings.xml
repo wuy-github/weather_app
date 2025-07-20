@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">WeatherAssistant</string>
+    <string name="msg_token_fmt">Hello, I am testing Firebase Notification Pushing. Your token is: %1$s</string>
 </resources>

@@ -11,7 +11,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.weatherassistant.Model.WeatherFlashData
 import com.example.weatherassistant.data.model.Minutely15Data
+import com.example.weatherassistant.data.model.WeatherFlashResponseData
 import com.example.weatherassistant.data.remote.RetrofitWeatherFlashInstance
+import com.example.weatherassistant.data.repository.WeatherFlashDataRepository
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -29,7 +31,9 @@ import kotlin.collections.indices
 import kotlin.collections.sumOf
 import kotlin.ranges.until
 
-class WeatherFlashViewModel : ViewModel() {
+class WeatherFlashViewModel( private val weatherDataRepository: WeatherFlashDataRepository) : ViewModel() {
+    private val _wholeResponseData = MutableStateFlow<WeatherFlashResponseData?>(null)
+    val wholeResponseData: StateFlow<WeatherFlashResponseData?> = _wholeResponseData
 
     private val _weatherFlashData = MutableStateFlow<WeatherFlashData?>(null)
     val weatherFlashData: StateFlow<WeatherFlashData?> = _weatherFlashData
@@ -48,6 +52,12 @@ class WeatherFlashViewModel : ViewModel() {
                 val response = openMeteoService.getWeatherFlashData(lat, lon)
                 val googleLatLng = LatLng(response.latitude, response.longitude)
 
+                // Save HourlyData Into Prefs:
+                response.hourly?.let { data ->
+                    weatherDataRepository.saveHourlyDataToPrefs(data)
+                    Log.d("WeatherFlashViewModel", "🤩🤩🤩 Found hourlyData that fetched from Open Meteo!!!")
+                }
+
                 val weatherData = WeatherFlashData(
                     latLng = googleLatLng,
                     temperature_2m = response.current.temperature_2m,
@@ -55,6 +65,7 @@ class WeatherFlashViewModel : ViewModel() {
                 )
                 _weatherFlashData.value = weatherData
 
+                Log.d("WeatherFlashViewModel", "\uD83E\uDD29\uD83E\uDD29 Fetch Flash Data Done!!! - ${weatherData.latLng}")
                 val totalRain = calculateRainForecastInNext2Hours(
                     response.minutely_15,
                     response.current.time,
@@ -63,7 +74,7 @@ class WeatherFlashViewModel : ViewModel() {
                 _rainForecast2Hours.value = totalRain
 
             } catch (e: Exception) {
-                Log.e("WeatherViewModel", "Lỗi khi gọi API: ${e.message}", e)
+                Log.e("WeatherFlashViewModel", "Lỗi khi gọi API: ${e.message}", e)
             }
         }
     }
@@ -147,5 +158,6 @@ class WeatherFlashViewModel : ViewModel() {
             Looper.getMainLooper()
         )
     }
+
 
 }

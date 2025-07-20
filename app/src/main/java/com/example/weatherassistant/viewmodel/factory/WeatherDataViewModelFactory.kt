@@ -1,9 +1,10 @@
-package com.example.weatherassistant.viewmodel
+package com.example.weatherassistant.viewmodel.factory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.weatherassistant.data.repository.UserPreferencesRepository
 import com.example.weatherassistant.data.repository.WikipediaRepository
+import com.example.weatherassistant.viewmodel.WeatherDataViewModel
 
 // Thêm wikipediaRepository vào constructor
 class WeatherDataViewModelFactory(
